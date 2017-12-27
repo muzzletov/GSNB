@@ -1,0 +1,26 @@
+<interface>
+  <menu id="options-menu">
+    <section>
+      <item>
+    <attribute name="label">Restart Kernel</attribute>
+    <attribute name="action">app.restart_kernel</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+    <attribute name="label">Export Worksheet in GSNB Format ...</attribute>
+    <attribute name="action">app.export_gsnb_worksheet</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+    <attribute name="label">Rename Worksheet ...</attribute>
+    <attribute name="action">app.rename_worksheet</attribute>
+      </item>
+      <item>
+    <attribute name="label">Delete Worksheet ...</attribute>
+    <attribute name="action">app.delete_worksheet</attribute>
+      </item>
+    </section>
+  </menu>
+</interface>

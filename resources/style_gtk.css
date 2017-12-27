@@ -1,0 +1,196 @@
+/*
+
+    worksheet view 
+
+*/
+
+resultviewrevealer > box {
+    border-bottom: 1px solid #ddd;
+}
+smresultviewtext label {
+    background-color: #ffffff;
+    color: blue;
+    font-family: monospace;
+    font-size: 14.5px;
+}
+resultviewseperator1 {
+    background-color: #ddd;
+    background-color: #fff;
+}
+smresultviewtext {
+    background-color: #ffffff;
+    font-size: 14.5px;
+}
+smresultviewimage {
+    background-color: #ffffff;
+}
+cellviewcode > box {
+    border-left: 0px solid #fff;
+}
+cellviewcode.active > box {
+    border-left: 0px solid #090;
+}
+cellviewmarkdown > box {
+    border-left: 0px solid #fff;
+}
+cellviewmarkdown.active > box {
+    border-left: 0px solid #090;
+}
+resultviewrevealer mdresultview {
+}
+resultviewrevealer.active mdresultview {
+}
+textview.view border.right {
+    background-color: #ffffff;
+}
+textview.view border.left {
+    background-color: #f4f4f3;
+    background-color: #ffffff;
+}
+.form-error {
+    color: #cd0404;
+    font-size: 13px;
+}
+.form-description {
+    color: #666;
+    font-size: 13px;
+}
+worksheetview {
+    background-color: #f7f7f7;
+}
+worksheetview viewport {
+    border: none;
+}
+blankstateview {
+    background-color: #eee;
+    border: none;
+}
+blankstateview box > label {
+    color: #666666;
+}
+blankstateview button.link label {
+    color: blue;
+}
+blankstateview viewport {
+    border: none;
+}
+.whitebar {
+    background-color: #ffffff;
+}
+textview {
+    font-size: 14.5px;
+}
+
+/*
+
+    cell states
+
+*/
+
+cellviewcode cellviewstatedisplay {
+    background-color: #ddd;
+}
+cellviewcode.active cellviewstatedisplay {
+    background-color: #05c92e;
+    background-color: #090;
+    background-color: #0cb02f;
+}
+cellviewmarkdown cellviewstatedisplay {
+    background-color: #ddd;
+}
+cellviewmarkdown.active cellviewstatedisplay {
+    background-color: #090;
+    background-color: #0cb02f;
+}
+resultviewrevealer cellviewstatedisplay {
+    background-color: #ddd;
+}
+resultviewrevealer.markdown cellviewstatedisplay {
+    background-color: #f7f7f7;
+}
+resultviewrevealer.active cellviewstatedisplay {
+    background-color: #090;
+    background-color: #0cb02f;
+}
+
+/*
+
+    worksheet list
+
+*/
+
+.wslist_wrapper {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+.wslist_name {
+    
+}
+.wslist_state {
+    font-size: 12px;
+    opacity: 0.6;
+}
+.wslist_icon {
+    padding-left: 7px;
+    padding-right: 15px;
+}
+.wslist_last_save {
+    font-size: 12px;
+    padding-right: 8px;
+    opacity: 0.6;
+}
+
+/*
+
+    markdown
+
+*/
+
+mdresultview label {
+    color: #000;
+    font-family: GFS Porson, DejaVu Sans, Cantarell, GFS Didot, Liberation Sans;
+}
+mdresultview .p {
+    font-size: 15px;
+    margin-top: 12px;
+    margin-bottom: 3px;
+}
+mdresultview .h1 {
+    font-size: 20pt;
+    color: red;
+    color: #d4095a;
+    color: #e11431;
+    color: #db1665;
+    color: #000;
+    font-weight: bold;
+    margin-top: 21px;
+}
+mdresultview .h2 {
+    font-size: 16pt;
+    font-weight: bold;
+    margin-top: 21px;
+    margin-bottom: 1px;
+}
+mdresultview .h3 {
+    font-size: 17px;
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 3px;
+}
+mdresultview .h4 {
+    font-size: 15px;
+    font-weight: bold;
+    margin-top: 22px;
+    margin-bottom: 3px;
+    font-style: italic;
+}
+mdresultview .h5 {
+    font-size: 15px;
+    margin-top: 22px;
+    margin-bottom: 3px;
+}
+mdresultview .h6 {
+    font-size: 15px;
+    margin-top: 22px;
+    margin-bottom: 3px;
+}
