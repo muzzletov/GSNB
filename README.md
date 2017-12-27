@@ -11,14 +11,14 @@ That said it's still usable and - in my opinion - enjoyable. So as you might not
 I'm developing GSNB on Debian and that's what I exclusively tested it with. Installing on Ubuntu should probably work exactly the same.
 
 1. Run the following command to install prerequisite Debian packages:
-apt-get install sagemath python3-bleach python3-markdown libgtk-3-dev libgtksourceview-3.0-dev
+`apt-get install sagemath python3-bleach python3-markdown libgtk-3-dev libgtksourceview-3.0-dev`
 
 2. Download und Unpack GSNB from GitHub
 
 3. cd to GSNB folder
 
 4. Running the following command should start GSNB:
-python3 __main__.py
+`python3 __main__.py`
 
 ## Installation on other Linux Distributions
 
