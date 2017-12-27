@@ -148,7 +148,6 @@ resultviewrevealer.active cellviewstatedisplay {
 
 mdresultview label {
     color: #000;
-    font-family: GFS Porson, DejaVu Sans, Cantarell, GFS Didot, Liberation Sans;
 }
 mdresultview .p {
     font-size: 15px;
