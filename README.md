@@ -1,6 +1,6 @@
 # GSNB
 
-SCREENSHOT
+![Screenshot](https://raw.githubusercontent.com/cvfosammmm/GSNB/master/resources/screenshots/2017-12-25.png)
 
 GSNB is a notebook style interface to the SageMath CAS (sagemath.org) similar to Jupyter but written in Python and Gtk+. It's currently not stable and likely has a lot of bugs. It's also lacking many features that Jupyter supports like 3D plots, tab-autocomplete, function references, pretty printing, LaTeX support, ... Markdown cells support only the most basic functions (paragraphs and headers).
 
@@ -11,6 +11,7 @@ That said it's still usable and - in my opinion - enjoyable. So as you might not
 I'm developing GSNB on Debian and that's what I exclusively tested it with. Installing on Ubuntu should probably work exactly the same.
 
 1. Run the following command to install prerequisite Debian packages:
+
 `apt-get install sagemath python3-bleach python3-markdown libgtk-3-dev libgtksourceview-3.0-dev`
 
 2. Download und Unpack GSNB from GitHub
@@ -18,6 +19,7 @@ I'm developing GSNB on Debian and that's what I exclusively tested it with. Inst
 3. cd to GSNB folder
 
 4. Running the following command should start GSNB:
+
 `python3 __main__.py`
 
 ## Installation on other Linux Distributions
