@@ -1,6 +1,6 @@
 # GSNB
 
-![Screenshot](https://raw.githubusercontent.com/cvfosammmm/GSNB/master/resources/screenshots/2017-12-25.png)
+![Screenshot](https://raw.githubusercontent.com/cvfosammmm/GSNB/master/resources/screenshots/2017-12-25.png?)
 
 GSNB is a notebook style interface to the SageMath CAS (sagemath.org) similar to Jupyter but written in Python and Gtk+. It's currently not stable and likely has a lot of bugs. It's also lacking many features that Jupyter supports like 3D plots, tab-autocomplete, function references, pretty printing, LaTeX support, ... Markdown cells support only the most basic functions (paragraphs and headers).
 
