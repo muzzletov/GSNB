@@ -240,7 +240,8 @@ class CellViewCodeLineNumbersRenderer(GtkSource.GutterRendererText):
         whitespace = ' ' * (ws_count)
 
         if int(flags) % 2 == 1 and self.is_active:
-            self.props.markup = '<b>' + whitespace + str(number) + '</b>'
+            colorstring = '#000'
+            self.props.markup = '<b><span color="' + colorstring + '">' + whitespace + str(number) + '</span></b>'
         else:
             colorstring = '#666666' if self.is_active else '#888888'
             colorstring = '#999'
@@ -298,6 +299,14 @@ class CellView(Gtk.Revealer):
         self.text_entry.set_vadjustment(Gtk.Adjustment())
         self.text_entry.set_hadjustment(Gtk.Adjustment())
 
+        self.text_entry.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        self.text_entry.set_show_line_numbers(False)
+        self.text_entry.set_hexpand(False)
+        self.text_entry.set_indent_width(4)
+        self.text_entry.set_indent_on_tab(True)
+        self.text_entry.set_auto_indent(True)
+        self.text_entry.set_insert_spaces_instead_of_tabs(True)
+
         self.allocation = self.get_allocation()
         
     def get_source_view(self):
@@ -327,14 +336,6 @@ class CellViewCode(CellView):
     def __init__(self, cell):
         CellView.__init__(self, cell)
 
-        self.text_entry.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        self.text_entry.set_show_line_numbers(False)
-        self.text_entry.set_hexpand(False)
-        self.text_entry.set_indent_width(4)
-        self.text_entry.set_indent_on_tab(True)
-        self.text_entry.set_auto_indent(True)
-        self.text_entry.set_insert_spaces_instead_of_tabs(True)
-
         self.text_entry.set_left_margin(9)
         self.text_entry.set_right_margin(15)
         self.text_entry.set_top_margin(15)
@@ -354,14 +355,6 @@ class CellViewMarkdown(CellView):
 
     def __init__(self, cell):
         CellView.__init__(self, cell)
-
-        self.text_entry.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-        self.text_entry.set_show_line_numbers(False)
-        self.text_entry.set_hexpand(True)
-        self.text_entry.set_indent_width(4)
-        self.text_entry.set_indent_on_tab(True)
-        self.text_entry.set_auto_indent(True)
-        self.text_entry.set_insert_spaces_instead_of_tabs(True)
 
         self.text_entry.set_left_margin(9)
         self.text_entry.set_right_margin(15)
