@@ -612,6 +612,7 @@ class MarkdownCell(Cell):
         
         # syntax highlighting
         self.set_language(self.get_worksheet().get_source_language_markdown())
+        self.set_style_scheme(self.get_worksheet().get_source_style_scheme())
 
     def evaluate(self):
         self.remove_result()
