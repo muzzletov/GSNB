@@ -655,6 +655,7 @@ class MainWindow(Gtk.ApplicationWindow):
         Gtk.Window.__init__(self, application=app)
         self.set_size_request(1000, 550)
         self.add_events(Gdk.EventMask.KEY_PRESS_MASK)
+        self.set_property('show-menubar', False)
         
         # window state variables
         self.current_width, self.current_height = self.get_size()
@@ -662,7 +663,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.is_fullscreen = False
 
         # headerbar
-        self.headerbar = HeaderBar()
+        self.headerbar = HeaderBar(app.settings.button_layout, app.settings.gtksettings.get_property('gtk-shell-shows-app-menu'))
         self.set_titlebar(self.headerbar)
 
         # window content

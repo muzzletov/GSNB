@@ -18,17 +18,22 @@
 import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
+from gi.repository import Gio
+from gi.repository import GLib
 
 
 class HeaderBar(Gtk.Paned):
     ''' Title bar of the app, contains always visible controls, 
         worksheet title and state (computing, idle, ...) '''
         
-    def __init__(self):
+    def __init__(self, button_layout, shows_app_menu):
         Gtk.Paned.__init__(self)
         
-        self.hb_left = HeaderBarLeft()
-        self.hb_right = HeaderBarRight()
+        show_close_button = True if (button_layout.find('close') < button_layout.find(':') and button_layout.find('close') >= 0) else False
+        self.hb_left = HeaderBarLeft(show_close_button)
+        
+        show_close_button = True if (button_layout.find('close') > button_layout.find(':') and button_layout.find('close') >= 0) else False
+        self.hb_right = HeaderBarRight(show_close_button, not shows_app_menu)
         
         self.pack1(self.hb_left, False, False)
         self.pack2(self.hb_right, True, False)
@@ -69,10 +74,10 @@ class HeaderBar(Gtk.Paned):
 
 class HeaderBarLeft(Gtk.HeaderBar):
 
-    def __init__(self):
+    def __init__(self, show_close_button):
         Gtk.HeaderBar.__init__(self)
 
-        self.set_show_close_button(False)
+        self.set_show_close_button(show_close_button)
 
         self.create_buttons()
 
@@ -102,16 +107,16 @@ class HeaderBarLeft(Gtk.HeaderBar):
 
 class HeaderBarRight(Gtk.HeaderBar):
 
-    def __init__(self):
+    def __init__(self, show_close_button, show_appmenu):
         Gtk.HeaderBar.__init__(self)
 
-        self.set_show_close_button(True)
+        self.set_show_close_button(show_close_button)
         self.props.title = ''
         
         Gtk.IconTheme.append_search_path(Gtk.IconTheme.get_default(), './resources');
-        self.create_buttons()
+        self.create_buttons(show_appmenu)
 
-    def create_buttons(self):
+    def create_buttons(self, show_appmenu=False):
         self.add_cell_box = Gtk.HBox()
         self.add_cell_box.get_style_context().add_class('linked')
 
@@ -163,7 +168,19 @@ class HeaderBarRight(Gtk.HeaderBar):
         self.menu_button.set_focus_on_click(False)
         self.builder = Gtk.Builder()
         self.builder.add_from_file('./resources/worksheet_menu.ui')
-        self.menu_button.set_menu_model(self.builder.get_object('options-menu'))
+        self.options_menu = self.builder.get_object('options-menu')
+        
+        if show_appmenu == True:
+            meta_section = Gio.Menu()
+            item = Gio.MenuItem.new('Keyboard Shortcuts', 'app.show_shortcuts_window')
+            meta_section.append_item(item)
+            item = Gio.MenuItem.new('About', 'app.show_about_dialog')
+            meta_section.append_item(item)
+            item = Gio.MenuItem.new('Quit', 'app.quit')
+            meta_section.append_item(item)
+            self.options_menu.append_section(None, meta_section)
+        
+        self.menu_button.set_menu_model(self.options_menu)
         
         self.save_button = Gtk.Button()
         self.save_button.set_label('Save')

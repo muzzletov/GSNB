@@ -33,10 +33,11 @@ import backend.backendcontroller as backendcontroller
 
 
 class Settings(object):
-    ''' GSettings controller for saving application state. '''
+    ''' Settings controller for saving application state. '''
     
     def __init__(self):
-    
+        self.gtksettings = Gtk.Settings.get_default()
+        
         self.pathname = os.path.expanduser('~') + '/.sage/gsnb'
         
         self.data = dict()
@@ -44,6 +45,9 @@ class Settings(object):
         if not self.unpickle():
             self.set_default()
             self.pickle()
+            
+        # load gsettings schema conserning application menu / window decorations
+        self.button_layout = self.gtksettings.get_property('gtk-decoration-layout')
     
     def set_default(self):
         self.data['window_state'] = dict()
@@ -84,6 +88,9 @@ class MainApplicationController(Gtk.Application):
     def do_activate(self):
         ''' Everything starts here. '''
         
+        # load settings
+        self.settings = Settings()
+        
         self.construct_application_menu()
         
         # init compute queue
@@ -96,9 +103,6 @@ class MainApplicationController(Gtk.Application):
         #self.worksheet_observers = dict()
         #self.cell_observers = dict()
 
-        # load gsettings schema
-        self.settings = Settings()
-        
         # init view
         self.main_window = view.MainWindow(self)
         self.main_window.set_default_size(self.settings.data['window_state']['width'], 
@@ -839,37 +843,39 @@ class MainApplicationController(Gtk.Application):
     '''
 
     def construct_application_menu(self):
-        app_menu = Gio.Menu()
 
-        #preferences_section = Gio.Menu()
-        #item = Gio.MenuItem.new('Preferences', 'app.show_preferences_window')
-        #preferences_section.append_item(item)
+        # show classic gnome app menu
+        if self.settings.gtksettings.get_property('gtk-shell-shows-app-menu') == True:
+            app_menu = Gio.Menu()
 
-        meta_section = Gio.Menu()
-        item = Gio.MenuItem.new('Keyboard Shortcuts', 'app.show_shortcuts_window')
-        meta_section.append_item(item)
-        item = Gio.MenuItem.new('About', 'app.show_about_dialog')
-        meta_section.append_item(item)
-        item = Gio.MenuItem.new('Quit', 'app.quit')
-        item.set_attribute_value('accel', GLib.Variant('s', '<Control>Q'))
-        meta_section.append_item(item)
+            #preferences_section = Gio.Menu()
+            #item = Gio.MenuItem.new('Preferences', 'app.show_preferences_window')
+            #preferences_section.append_item(item)
 
-        #app_menu.append_section(None, preferences_section)
-        app_menu.append_section(None, meta_section)
+            meta_section = Gio.Menu()
+            item = Gio.MenuItem.new('Keyboard Shortcuts', 'app.show_shortcuts_window')
+            meta_section.append_item(item)
+            item = Gio.MenuItem.new('About', 'app.show_about_dialog')
+            meta_section.append_item(item)
+            item = Gio.MenuItem.new('Quit', 'app.quit')
+            meta_section.append_item(item)
 
-        self.set_app_menu(app_menu)
+            #app_menu.append_section(None, preferences_section)
+            app_menu.append_section(None, meta_section)
 
-        quit_action = Gio.SimpleAction.new('quit', None)
-        quit_action.connect('activate', self.on_appmenu_quit)
-        self.add_action(quit_action)
+            self.set_app_menu(app_menu)
 
-        show_about_dialog_action = Gio.SimpleAction.new('show_about_dialog', None)
-        show_about_dialog_action.connect('activate', self.on_appmenu_show_about_dialog)
-        self.add_action(show_about_dialog_action)
+            quit_action = Gio.SimpleAction.new('quit', None)
+            quit_action.connect('activate', self.on_appmenu_quit)
+            self.add_action(quit_action)
 
-        show_shortcuts_window_action = Gio.SimpleAction.new('show_shortcuts_window', None)
-        show_shortcuts_window_action.connect('activate', self.on_appmenu_show_shortcuts_window)
-        self.add_action(show_shortcuts_window_action)
+            show_about_dialog_action = Gio.SimpleAction.new('show_about_dialog', None)
+            show_about_dialog_action.connect('activate', self.on_appmenu_show_about_dialog)
+            self.add_action(show_about_dialog_action)
+
+            show_shortcuts_window_action = Gio.SimpleAction.new('show_shortcuts_window', None)
+            show_shortcuts_window_action.connect('activate', self.on_appmenu_show_shortcuts_window)
+            self.add_action(show_shortcuts_window_action)
 
     def on_appmenu_show_shortcuts_window(self, action, parameter=''):
         ''' show popup with a list of keyboard shortcuts. '''
@@ -896,7 +902,7 @@ class MainApplicationController(Gtk.Application):
         self.about_dialog.set_authors(('Robert Griesel',))
         self.about_dialog.show_all()
         
-    def on_appmenu_quit(self, action, parameter=''):
+    def on_appmenu_quit(self, action=None, parameter=''):
         ''' quit application, show save dialog if unsaved worksheets present. '''
         
         if not self.on_window_close(self.main_window):
@@ -919,6 +925,20 @@ class MainApplicationController(Gtk.Application):
         export_gsnb_ws_action = Gio.SimpleAction.new('export_gsnb_worksheet', None)
         export_gsnb_ws_action.connect('activate', self.on_wsmenu_gsnb_export)
         self.add_action(export_gsnb_ws_action)
+
+        #preferences_section = Gio.Menu()
+        #item = Gio.MenuItem.new('Preferences', 'app.show_preferences_window')
+        #preferences_section.append_item(item)
+        if self.settings.gtksettings.get_property('gtk-shell-shows-app-menu') == False:
+            quit_action = Gio.SimpleAction.new('quit', None)
+            quit_action.connect('activate', self.on_appmenu_quit)
+            self.add_action(quit_action)
+            show_about_dialog_action = Gio.SimpleAction.new('show_about_dialog', None)
+            show_about_dialog_action.connect('activate', self.on_appmenu_show_about_dialog)
+            self.add_action(show_about_dialog_action)
+            show_shortcuts_window_action = Gio.SimpleAction.new('show_shortcuts_window', None)
+            show_shortcuts_window_action.connect('activate', self.on_appmenu_show_shortcuts_window)
+            self.add_action(show_shortcuts_window_action)
         
     def on_wsmenu_restart_kernel(self, action=None, parameter=None):
         ''' signal handler, restart kernel for active worksheet '''
@@ -1322,6 +1342,11 @@ class MainApplicationController(Gtk.Application):
         # save worksheet with ctrl+s
         if event.keyval == Gdk.keyval_from_name('s') and event.state == Gdk.ModifierType.CONTROL_MASK:
             self.on_save_ws_button_click()
+            return True
+            
+        # quit app with ctrl+q
+        if event.keyval == Gdk.keyval_from_name('q') and event.state == Gdk.ModifierType.CONTROL_MASK:
+            self.on_appmenu_quit()
             return True
             
         return False
