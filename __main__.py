@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# Copyright (C) 2017 Robert Griesel
+# Copyright (C) 2017, 2018 Robert Griesel
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -22,6 +22,9 @@ from gi.repository import Gdk
 from gi.repository import GLib
 from gi.repository import Gio
 import viewgtk.viewgtk as view
+import controller.controller_cell as cellcontroller
+import controller.controller_worksheet as worksheetcontroller
+import controller.controller_settings as settingscontroller
 import sys
 import model.model as model
 import time
@@ -32,54 +35,6 @@ import pickle
 import backend.backendcontroller as backendcontroller
 
 
-class Settings(object):
-    ''' Settings controller for saving application state. '''
-    
-    def __init__(self):
-        self.gtksettings = Gtk.Settings.get_default()
-        
-        self.pathname = os.path.expanduser('~') + '/.sage/gsnb'
-        
-        self.data = dict()
-        
-        if not self.unpickle():
-            self.set_default()
-            self.pickle()
-            
-        # load gsettings schema conserning application menu / window decorations
-        self.button_layout = self.gtksettings.get_property('gtk-decoration-layout')
-    
-    def set_default(self):
-        self.data['window_state'] = dict()
-        self.data['window_state']['width'] = 1000
-        self.data['window_state']['height'] = 550
-        self.data['window_state']['is_maximized'] = False
-        self.data['window_state']['is_fullscreen'] = False
-        self.data['window_state']['paned_position'] = 300
-        
-    def unpickle(self):
-        ''' Load settings from gsnb path. '''
-        
-        # create folder if it does not exist
-        if not os.path.isdir(self.pathname):
-            os.makedirs(self.pathname)
-        
-        try: filehandle = open(self.pathname + '/settings.pickle', 'rb')
-        except IOError: return False
-        else:
-            try: self.data = pickle.load(filehandle)
-            except EOFError: False
-            
-        return True
-        
-    def pickle(self):
-        ''' Save settings in gsnb path. '''
-        
-        try: filehandle = open(self.pathname + '/settings.pickle', 'wb')
-        except IOError: return False
-        else: pickle.dump(self.data, filehandle)
-        
-
 class MainApplicationController(Gtk.Application):
 
     def __init__(self):
@@ -89,20 +44,23 @@ class MainApplicationController(Gtk.Application):
         ''' Everything starts here. '''
         
         # load settings
-        self.settings = Settings()
+        self.settings = settingscontroller.Settings()
         
         self.construct_application_menu()
+        self.construct_worksheet_menu()
         
         # init compute queue
         self.backend_controller_sagemath = backendcontroller.BackendControllerSageMath()
         self.backend_controller_markdown = backendcontroller.BackendControllerMarkdown()
         
+        # controllers
+        self.worksheet_controllers = dict()
+        self.cell_controllers = dict()
+
         # init model
         self.notebook = model.Notebook()
         self.observe_notebook()
-        #self.worksheet_observers = dict()
-        #self.cell_observers = dict()
-
+        
         # init view
         self.main_window = view.MainWindow(self)
         self.main_window.set_default_size(self.settings.data['window_state']['width'], 
@@ -113,21 +71,22 @@ class MainApplicationController(Gtk.Application):
         if self.settings.data['window_state']['is_fullscreen']: self.main_window.fullscreen()
         else: self.main_window.unfullscreen()
         
-        self.construct_worksheet_menu()
         self.main_window.show_all()
         self.main_window.paned.set_position(self.settings.data['window_state']['paned_position'])
+        self.main_window.sidebar.set_position(self.settings.data['window_state'].get('sidebar_paned_position', int(self.main_window.sidebar.get_allocated_height()/2)))
         self.window_mode = None
         self.activate_blank_state_mode()
         
         # populate app
         self.notebook.populate_from_path(os.path.expanduser('~') + '/.sage/gsnb')
+        self.notebook.populate_documentation()
         
         # watch changes in view
         self.observe_main_window()
         
         # select first worksheet in list
-        row = self.main_window.worksheet_list_view.get_row_at_index(0)
-        self.main_window.worksheet_list_view.select_row(row)
+        row = self.main_window.sidebar.worksheet_list_view.get_row_at_index(0)
+        self.main_window.sidebar.worksheet_list_view.select_row(row)
 
         # to watch for cursor movements
         self.cursor_position = {'cell': None, 'cell_position': None, 'cell_size': None, 'position': None}
@@ -143,215 +102,40 @@ class MainApplicationController(Gtk.Application):
             
             # add_worksheet_view
             worksheet_view = view.WorksheetView()
-            self.main_window.add_worksheet_view(worksheet.get_id(), worksheet_view)
+            self.main_window.add_worksheet_view(worksheet, worksheet_view)
 
             # observe changes in this worksheet
-            self.observe_worksheet(worksheet)
-            self.observe_worksheet_view(worksheet_view)
-
-            # add to sidebar, observe clicks
-            wslist_item = view.WorksheetListViewItem(worksheet.get_name(), worksheet.get_id(), worksheet.get_last_saved())
-            self.main_window.worksheet_list_view.add_item(wslist_item)
+            self.worksheet_controllers[worksheet] = worksheetcontroller.WorksheetController(worksheet, worksheet_view, self)
             
-            # switch main window to worksheet mode
-            self.activate_worksheet_mode()
-
+            # add to sidebar, observe clicks
+            if isinstance(worksheet, model.NormalWorksheet):
+                wslist_item = view.NormalWorksheetListViewItem(worksheet, worksheet.get_last_saved())
+                self.main_window.sidebar.worksheet_list_view.add_item(wslist_item)
+                self.activate_worksheet_mode()
+            elif isinstance(worksheet, model.DocumentationWorksheet):
+                doclist_item = view.DocumentationWorksheetListViewItem(worksheet, worksheet.get_last_saved(), worksheet.get_last_accessed())
+                self.main_window.sidebar.documentation_list_view.add_item(doclist_item)
+            
         if change_code == 'worksheet_removed':
             worksheet = parameter
             self.remove_from_sidebar(worksheet)
-            self.main_window.remove_worksheet_view(worksheet.get_id())
+            self.main_window.remove_worksheet_view(worksheet)
         
         if change_code == 'changed_active_worksheet':
             worksheet = parameter
             
+            self.activate_worksheet_mode()
+
             # change title, subtitle in headerbar
             self.update_title(worksheet)
             self.update_subtitle(worksheet)
             self.update_save_button()
+            self.update_hamburger_menu()
             
             # change worksheet_view
-            self.main_window.activate_worksheet_view(worksheet.get_id())
+            self.main_window.activate_worksheet_view(worksheet)
             if worksheet.get_active_cell() != None: worksheet.set_active_cell(worksheet.get_active_cell())
             self.update_stop_button()
-
-        if change_code == 'worksheet_name_changed':
-            worksheet = notifying_object
-            name = parameter
-            self.update_title(worksheet)
-            
-        if change_code == 'kernel_state_changed':
-            worksheet = notifying_object
-            self.update_subtitle(worksheet)
-            
-        if change_code == 'new_cell':
-            worksheet = notifying_object
-            cell = parameter
-            worksheet_view = self.main_window.worksheet_views[worksheet.get_id()]
-            worksheet_position = cell.get_worksheet_position()
-            view_position = worksheet_position * 2
-
-            # create cell view and result view revealer
-            if isinstance(cell, model.MarkdownCell):
-                cell_view = view.CellViewMarkdown(cell)
-                result_view_revealer = view.ResultViewRevealer(cell_view)
-                result_view_revealer.get_style_context().add_class('markdown')
-            elif isinstance(cell, model.CodeCell):
-                cell_view = view.CellViewCode(cell)
-                result_view_revealer = view.ResultViewRevealer(cell_view)
-            
-            worksheet_view.add_child_at_position(result_view_revealer, view_position)
-            worksheet_view.add_child_at_position(cell_view, view_position)
-            self.observe_cell(cell)
-            self.observe_cell_view(cell_view)
-            self.observe_result_view_revealer(result_view_revealer)
-            self.update_up_down_buttons()
-            self.update_line_numbers()
-
-        if change_code == 'deleted_cell':
-            worksheet = notifying_object
-            child_position = parameter * 2
-            worksheet_view = self.main_window.worksheet_views[worksheet.get_id()]
-            
-            # remove cell and result revealer from view
-            self.main_window.worksheet_views[worksheet.get_id()].remove_child_by_position(child_position)
-            self.main_window.worksheet_views[worksheet.get_id()].remove_child_by_position(child_position)
-            
-            self.update_up_down_buttons()
-            self.update_line_numbers()
-        
-        if change_code == 'new_active_cell':
-            worksheet = notifying_object
-            cell = parameter
-            child_position = cell.get_worksheet_position() * 2
-            worksheet_view = self.main_window.worksheet_views[worksheet.get_id()]
-            cell_view = worksheet_view.get_child_by_position(child_position)
-            GLib.idle_add(lambda: cell_view.get_source_view().grab_focus())
-            cell_view.set_active()
-            cell_view.line_numbers_renderer.set_active()
-            self.update_up_down_buttons()
-            
-            # update result view
-            result_view_revealer = worksheet_view.get_child_by_position(child_position + 1)
-            result_view_revealer.get_style_context().add_class('active')
-            
-        if change_code == 'new_inactive_cell':
-            worksheet = notifying_object
-            cell = parameter
-            child_position = cell.get_worksheet_position() * 2
-            worksheet_view = self.main_window.worksheet_views[worksheet.get_id()]
-            cell_view = worksheet_view.get_child_by_position(child_position)
-            cell_view.set_inactive()
-            cell_view.line_numbers_renderer.set_inactive()
-            
-            # unselect text
-            insert_mark = cell.get_iter_at_mark(cell.get_insert())
-            selection_bound = cell.get_selection_bound()
-            cell.move_mark(selection_bound, insert_mark)
-            
-            # update result view
-            result_view_revealer = worksheet_view.get_child_by_position(child_position + 1)
-            result_view_revealer.get_style_context().remove_class('active')
-            
-        if change_code == 'cell_moved':
-            worksheet = notifying_object
-            worksheet_view = self.main_window.worksheet_views[worksheet.get_id()]
-
-            # get positions
-            cell_view1_position = parameter['position'] * 2
-            cell_view2_position = parameter['new_position'] * 2
-            
-            # move cells
-            cell_view1 = worksheet_view.get_child_by_position(cell_view1_position)
-            cell_view2 = worksheet_view.get_child_by_position(cell_view2_position)
-            worksheet_view.move_child(cell_view1, cell_view2_position)
-            worksheet_view.move_child(cell_view2, cell_view1_position)
-            
-            # move result revealers
-            result_revealer_view1 = worksheet_view.get_child_by_position(cell_view1_position + 1)
-            result_revealer_view2 = worksheet_view.get_child_by_position(cell_view2_position + 1)
-            worksheet_view.move_child(result_revealer_view1, cell_view2_position + 1)
-            worksheet_view.move_child(result_revealer_view2, cell_view1_position + 1)
-            
-            cell_view1.grab_focus()
-            GLib.idle_add(lambda: cell_view1.get_source_view().grab_focus())
-
-            self.update_up_down_buttons()
-            self.update_line_numbers()
-
-        if change_code == 'busy_cell_count_changed':
-            worksheet = notifying_object
-            self.update_subtitle(worksheet)
-            if worksheet == self.notebook.active_worksheet:
-                self.update_stop_button()
-
-        if change_code == 'save_state_change':
-            worksheet = notifying_object
-            self.update_title(worksheet)
-            self.update_sidebar_save_date(worksheet)
-            if worksheet == self.notebook.active_worksheet:
-                self.update_save_button()
-            
-        if change_code == 'new_result':
-            cell = notifying_object
-            result = parameter['result']
-            worksheet_view = self.main_window.worksheet_views[cell.get_worksheet().get_id()]
-            cell_view_position = cell.get_worksheet_position() * 2
-            cell_view = worksheet_view.get_child_by_position(cell_view_position)
-                
-            # check if cell view is still present
-            if cell_view_position >= 0:
-
-                # remove previous results
-                revealer = worksheet_view.get_child_by_position(cell_view_position + 1)
-                
-                # add result
-                if result == None:
-                    revealer.unreveal()
-                    cell_view.set_reveal_child(True)
-                    cell_view.text_entry.set_editable(True)
-                else:
-                    if isinstance(result, model.SageMathResultImage):
-                        result_view = view.SageMathResultViewImage(cell_view)
-                        result_view.load_image_from_filename(result.get_absolute_path())
-                        revealer.set_result_view(result_view)
-                        revealer.show_all()
-                        GLib.idle_add(lambda: revealer.reveal(parameter['show_animation']))
-                    elif isinstance(result, model.SageMathResultText):
-                        result_view = view.SageMathResultViewText(cell_view)
-                        result_view.set_text(result.get_as_raw_text())
-                        revealer.set_result_view(result_view)
-                        revealer.show_all()
-                        GLib.idle_add(lambda: revealer.reveal(parameter['show_animation']))
-                    elif isinstance(result, model.MarkdownResult):
-                        cell_view.unreveal(parameter['show_animation'])
-                        cell_view.text_entry.set_editable(False)
-                        result_view = view.MarkdownResultView(cell_view)
-                        result_view.set_buildable(result.get_buildable())
-                        result_view.set_replacements(result.get_replacements())
-                        result_view.compile()
-                        revealer.set_result_view(result_view)
-                        if parameter['show_animation'] == False:
-                            revealer.reveal(parameter['show_animation'])
-                        else:
-                            GLib.idle_add(lambda: revealer.reveal(parameter['show_animation']))
-
-                # enable auto-scrolling for this cell (not enabled on startup)
-                GLib.idle_add(lambda: revealer.set_autoscroll_on_reveal(True))
-                
-        if change_code == 'cell_state_change':
-            cell = notifying_object
-            worksheet_view = self.main_window.worksheet_views[cell.get_worksheet().get_id()]
-            child_position = cell.get_worksheet_position() * 2
-            cell_view = worksheet_view.get_child_by_position(child_position)
-
-            if cell_view != None:
-                if parameter == 'idle': cell_view.state_display.show_nothing()
-                elif parameter == 'edit': cell_view.state_display.show_nothing()
-                elif parameter == 'display': cell_view.state_display.show_nothing()
-                elif parameter == 'queued_for_evaluation': cell_view.state_display.show_spinner()
-                elif parameter == 'ready_for_evaluation': cell_view.state_display.show_spinner()
-                elif parameter == 'evaluation_in_progress': cell_view.state_display.show_spinner()
-            
 
     '''
     *** main observer functions
@@ -376,37 +160,16 @@ class MainApplicationController(Gtk.Application):
         hb_right.eval_nc_button.connect('clicked', self.on_eval_nc_button_click)
         hb_right.stop_button.connect('clicked', self.on_stop_button_click)
         hb_right.save_button.connect('clicked', self.on_save_ws_button_click)
+        hb_right.revert_button.connect('clicked', self.on_revert_ws_button_click)
 
         self.main_window.connect('key-press-event', self.observe_keyboard_keypress_events)
-        self.main_window.worksheet_list_view.connect('row-selected', self.on_worksheet_list_click)
+        self.main_window.sidebar.worksheet_list_view.connect('row-selected', self.on_worksheet_list_click)
+        self.main_window.sidebar.documentation_list_view.connect('row-selected', self.on_documentation_list_click)
         self.main_window.connect('size-allocate', self.on_window_size_allocate)
         self.main_window.connect('window-state-event', self.on_window_state_event)
         self.main_window.connect('delete-event', self.on_window_close)
-        self.main_window.worksheet_list_view.connect('size-allocate', self.on_ws_view_size_allocate)
+        self.main_window.sidebar.connect('size-allocate', self.on_ws_view_size_allocate)
     
-    def observe_worksheet(self, worksheet):
-        worksheet.register_observer(self)
-        worksheet.register_observer(self.backend_controller_sagemath)
-    
-    def observe_worksheet_view(self, worksheet_view):
-        pass
-    
-    def observe_cell(self, cell):
-        cell.register_observer(self)
-        if isinstance(cell, model.CodeCell):
-            cell.register_observer(self.backend_controller_sagemath)
-        elif isinstance(cell, model.MarkdownCell):
-            cell.register_observer(self.backend_controller_markdown)
-        
-        cell.connect('mark-set', self.cell_on_cursor_movement)
-        cell.connect('changed', self.cell_on_change)
-        cell.connect('paste-done', self.cell_on_paste)
-
-    def observe_cell_view(self, cell_view):
-        cell_view.get_source_view().connect('focus-in-event', self.cell_on_focus_in)
-        cell_view.get_source_view().connect('size-allocate', self.cell_on_size_allocate)
-        cell_view.connect('size-allocate', self.cell_view_revealer_on_size_allocate)
-        
     def observe_result_view_revealer(self, result_view_revealer):
         result_view_revealer.connect('button-press-event', self.result_on_mouse_click)
         result_view_revealer.connect('size-allocate', self.result_view_on_size_allocate)
@@ -450,8 +213,24 @@ class MainApplicationController(Gtk.Application):
         worksheet = self.notebook.get_active_worksheet()
         if worksheet.get_save_state() == 'modified':
             self.main_window.headerbar.activate_save_button()
+            self.main_window.headerbar.activate_revert_button()
         else:
             self.main_window.headerbar.deactivate_save_button()
+            self.main_window.headerbar.deactivate_revert_button()
+            
+        if isinstance(worksheet, model.NormalWorksheet):
+            self.main_window.headerbar.activate_documentation_mode()
+        else:
+            self.main_window.headerbar.deactivate_documentation_mode()
+            
+    def update_hamburger_menu(self):
+        worksheet = self.notebook.get_active_worksheet()
+        if isinstance(worksheet, model.NormalWorksheet):
+            self.delete_ws_action.set_enabled(True)
+            self.rename_ws_action.set_enabled(True)
+        elif isinstance(worksheet, model.DocumentationWorksheet):
+            self.delete_ws_action.set_enabled(False)
+            self.rename_ws_action.set_enabled(False)
             
     def update_up_down_buttons(self):
         worksheet = self.notebook.get_active_worksheet()
@@ -479,85 +258,42 @@ class MainApplicationController(Gtk.Application):
             subtitle = 'starting kernel.'
         else:
             subtitle = 'idle.'
-        item = self.main_window.worksheet_list_view.get_item_by_worksheet_id(worksheet.get_id())
+
+        if isinstance(worksheet, model.NormalWorksheet):
+            item = self.main_window.sidebar.worksheet_list_view.get_item_by_worksheet(worksheet)
+        else:
+            item = self.main_window.sidebar.documentation_list_view.get_item_by_worksheet(worksheet)
         item.set_state(subtitle)
         if worksheet == self.notebook.get_active_worksheet():
             if self.main_window.headerbar.get_subtitle() != subtitle:
                 self.main_window.headerbar.set_subtitle(subtitle)
 
     def update_title(self, worksheet):
-        save_state = '*' if worksheet.get_save_state() == 'modified' else ''
-        item = self.main_window.worksheet_list_view.get_item_by_worksheet_id(worksheet.get_id())
-        item.set_name(save_state + worksheet.get_name())
+        if isinstance(worksheet, model.NormalWorksheet):
+            save_state = '*' if worksheet.get_save_state() == 'modified' else ''
+            item = self.main_window.sidebar.worksheet_list_view.get_item_by_worksheet(worksheet)
+            item.set_name(save_state + worksheet.get_name())
+        elif isinstance(worksheet, model.DocumentationWorksheet):
+            save_state = ''
+            item = self.main_window.sidebar.documentation_list_view.get_item_by_worksheet(worksheet)
+            item.set_name(save_state + worksheet.get_name())
         if worksheet == self.notebook.active_worksheet:
             self.main_window.headerbar.set_title(save_state + worksheet.get_name())
         
     def update_sidebar_save_date(self, worksheet):
-        item = self.main_window.worksheet_list_view.get_item_by_worksheet_id(worksheet.get_id())
-        item.set_last_save(worksheet.get_last_saved())
+        if isinstance(worksheet, model.NormalWorksheet):
+            item = self.main_window.sidebar.worksheet_list_view.get_item_by_worksheet(worksheet)
+            item.set_last_save(worksheet.get_last_saved())
         
     def remove_from_sidebar(self, worksheet):
-        item = self.main_window.worksheet_list_view.get_item_by_worksheet_id(worksheet.get_id())
-        self.main_window.worksheet_list_view.remove(item)
-
-    def update_line_numbers(self):
-        try: worksheet_view = self.main_window.active_worksheet_view
-        except AttributeError: pass
-        else:
-            offset = 0
-            total = 0
-            for child in worksheet_view.children:
-                if isinstance(child, view.CellView):
-                    total += child.text_entry.get_buffer().get_line_count()
-
-            width = 1
-            while total >= 10:
-                width += 1
-                total //= 10
-            width += 3
-            width = max(width, 6)
-            for child in worksheet_view.children:
-                if isinstance(child, view.CellView):
-                    child.line_numbers_renderer.set_width(width)
-                    child.line_numbers_renderer.set_offset(offset)
-                    child.line_numbers_renderer.queue_draw()
-                    offset += child.text_entry.get_buffer().get_line_count()
-                elif isinstance(child, view.ResultViewRevealer):
-                    if child.result_view != None:
-                        child.result_view.left_padding.set_size_request(width * 9 + 9, -1)
-                        child.queue_draw()
+        if isinstance(worksheet, model.NormalWorksheet):
+            item = self.main_window.sidebar.worksheet_list_view.get_item_by_worksheet(worksheet)
+            self.main_window.sidebar.worksheet_list_view.remove(item)
 
     '''
-    *** signal handlers: cells
+    *** signal handlers: results
     '''
     
-    def cell_on_focus_in(self, text_field, event):
-        ''' activate cell on click '''
-
-        cell = text_field.get_buffer()
-        if cell.is_active_cell() == False:
-            cell.get_worksheet().set_active_cell(cell)
-            return True
-        
-        self.scroll_to_cursor(text_field.get_buffer(), check_if_position_changed=True)
-        return False
-    
-    def cell_on_size_allocate(self, text_field, allocation=None):
-        self.scroll_to_cursor(text_field.get_buffer(), check_if_position_changed=True)
-        
-    def cell_on_change(self, cell):
-        self.update_line_numbers()
-        
-    def cell_on_paste(self, cell, clipboard, user_data=None):
-        ''' hack to prevent some gtk weirdness. '''
-        
-        prev_insert = cell.create_mark('name', cell.get_iter_at_mark(cell.get_insert()), True)
-        cell.insert_at_cursor('\n')
-        GLib.idle_add(lambda: cell.delete(cell.get_iter_at_mark(cell.get_insert()), cell.get_iter_at_mark(prev_insert)))
-    
-    def cell_on_cursor_movement(self, cell, mark=None, user_data=None):
-        self.scroll_to_cursor(cell, check_if_position_changed=True)
-        
     def result_on_mouse_click(self, result_view_revealer, click_event):
     
         if click_event.type == Gdk.EventType.DOUBLE_BUTTON_PRESS:
@@ -575,19 +311,6 @@ class MainApplicationController(Gtk.Application):
             
         return False
         
-    '''
-    *** helpers: cell
-    '''
-    
-    def place_cursor_on_last_line(self, cell):
-        worksheet_view = self.main_window.active_worksheet_view
-        cell_view_position = cell.get_worksheet_position() * 2
-        cell_view = worksheet_view.get_child_by_position(cell_view_position)
-
-        target_iter = cell_view.text_entry.get_iter_at_position(0, cell_view.text_entry.get_allocated_height() - 30)
-        cell.place_cursor(target_iter[1])
-
-    
     '''
     *** signal handlers: main window
     '''
@@ -616,7 +339,7 @@ class MainApplicationController(Gtk.Application):
         def wscreate_on_create_button_clicked(create_button):
             name = self.create_ws_dialog.name_entry.get_text().strip()
             if len(name) > 0:
-                worksheet = model.Worksheet(self.notebook)
+                worksheet = model.NormalWorksheet(self.notebook)
                 worksheet.set_id(self.notebook.find_unused_ws_id())
                 worksheet.set_name(self.create_ws_dialog.name_entry.get_text().strip())
                 pathname = self.notebook.get_pathname() + '/' + str(worksheet.get_id())
@@ -625,8 +348,8 @@ class MainApplicationController(Gtk.Application):
                 worksheet.create_cell(0, '', activate=True)
                 worksheet.save_to_disk()
 
-                row = self.main_window.worksheet_list_view.get_row_at_index(0)
-                self.main_window.worksheet_list_view.select_row(row)
+                row = self.main_window.sidebar.worksheet_list_view.get_row_at_index(0)
+                self.main_window.sidebar.worksheet_list_view.select_row(row)
                 del(self.create_ws_dialog)
             else:
                 self.create_ws_dialog.show_error('name-missing')
@@ -656,7 +379,7 @@ class MainApplicationController(Gtk.Application):
                 else:
                     td_path = tempfile.mkdtemp()
                     tar.extractall(td_path)
-                    worksheet = model.Worksheet(self.notebook)
+                    worksheet = model.NormalWorksheet(self.notebook)
                     worksheet.set_id(self.notebook.find_unused_ws_id())
                     pathname = self.notebook.get_pathname() + '/' + str(worksheet.get_id())
                     os.rename(td_path + '/' + str(count), pathname)
@@ -668,9 +391,9 @@ class MainApplicationController(Gtk.Application):
                         worksheet.set_name(meta['name'])
                     worksheet.save_meta_to_disk()
                     self.notebook.add_worksheet(worksheet)
-                    row_index = self.main_window.worksheet_list_view.get_row_index_by_worksheet_id(worksheet.get_id())
-                    row = self.main_window.worksheet_list_view.get_row_at_index(row_index)
-                    self.main_window.worksheet_list_view.select_row(row)
+                    row_index = self.main_window.sidebar.worksheet_list_view.get_row_index_by_worksheet(worksheet)
+                    row = self.main_window.sidebar.worksheet_list_view.get_row_at_index(row_index)
+                    self.main_window.sidebar.worksheet_list_view.select_row(row)
                     count += 1
 
         dialog.destroy()
@@ -679,8 +402,17 @@ class MainApplicationController(Gtk.Application):
         ''' signal handler, activate worksheet '''
         
         if wslist_item_view != None:
-            worksheet_id = wslist_item_view.get_worksheet_id()
-            worksheet = self.notebook.worksheets[worksheet_id]
+            self.main_window.sidebar.documentation_list_view.unselect_all()
+            worksheet = wslist_item_view.get_worksheet()
+            self.notebook.set_active_worksheet(worksheet)
+            worksheet.populate_cells()
+            
+    def on_documentation_list_click(self, wslist_view, wslist_item_view):
+        ''' signal handler, activate documentation worksheet '''
+
+        if wslist_item_view != None:
+            self.main_window.sidebar.worksheet_list_view.unselect_all()
+            worksheet = wslist_item_view.get_worksheet()
             self.notebook.set_active_worksheet(worksheet)
             worksheet.populate_cells()
         
@@ -727,17 +459,17 @@ class MainApplicationController(Gtk.Application):
             worksheet.set_active_cell(prev_cell)
             #prev_cell.place_cursor(prev_cell.get_iter_at_line(prev_cell.get_line_count() - 1))
             prev_cell.place_cursor(prev_cell.get_start_iter())
-            worksheet.delete_cell(cell)
+            worksheet.remove_cell(cell)
         else:
             next_cell = worksheet.get_next_cell(cell)
             if next_cell != None:
                 cell.remove_result()
                 worksheet.set_active_cell(next_cell)
                 next_cell.place_cursor(next_cell.get_start_iter())
-                worksheet.delete_cell(cell)
+                worksheet.remove_cell(cell)
             else:
                 cell.remove_result()
-                worksheet.delete_cell(cell)
+                worksheet.remove_cell(cell)
                 worksheet.create_cell('last', '', activate=True)
             
     def on_eval_button_click(self, button_object=None):
@@ -773,7 +505,17 @@ class MainApplicationController(Gtk.Application):
     def on_save_ws_button_click(self, button_object=None):
         ''' signal handler, save active worksheet to disk '''
         
-        self.notebook.get_active_worksheet().save_to_disk()
+        worksheet = self.notebook.get_active_worksheet()
+        if isinstance(worksheet, model.NormalWorksheet):
+            worksheet.save_to_disk()
+        
+    def on_revert_ws_button_click(self, button_object=None):
+        ''' signal handler, save active worksheet to disk '''
+        
+        worksheet = self.notebook.get_active_worksheet()
+        if isinstance(worksheet, model.DocumentationWorksheet):
+            worksheet.remove_all_cells()
+            worksheet.populate_cells()
         
     def on_window_size_allocate(self, main_window, window_size):
         ''' signal handler, update window size variables '''
@@ -804,6 +546,7 @@ class MainApplicationController(Gtk.Application):
         self.settings.data['window_state']['is_maximized'] = main_window.is_maximized
         self.settings.data['window_state']['is_fullscreen'] = main_window.is_fullscreen
         self.settings.data['window_state']['paned_position'] = main_window.paned_position
+        self.settings.data['window_state']['sidebar_paned_position'] = main_window.sidebar.get_position()
         self.settings.pickle()
         
     def on_window_close(self, main_window, event=None):
@@ -913,18 +656,18 @@ class MainApplicationController(Gtk.Application):
     '''
     
     def construct_worksheet_menu(self):
-        restart_kernel_action = Gio.SimpleAction.new('restart_kernel', None)
-        restart_kernel_action.connect('activate', self.on_wsmenu_restart_kernel)
-        self.add_action(restart_kernel_action)
-        rename_ws_action = Gio.SimpleAction.new('rename_worksheet', None)
-        rename_ws_action.connect('activate', self.on_wsmenu_rename)
-        self.add_action(rename_ws_action)
-        delete_ws_action = Gio.SimpleAction.new('delete_worksheet', None)
-        delete_ws_action.connect('activate', self.on_wsmenu_delete)
-        self.add_action(delete_ws_action)
-        export_gsnb_ws_action = Gio.SimpleAction.new('export_gsnb_worksheet', None)
-        export_gsnb_ws_action.connect('activate', self.on_wsmenu_gsnb_export)
-        self.add_action(export_gsnb_ws_action)
+        self.restart_kernel_action = Gio.SimpleAction.new('restart_kernel', None)
+        self.restart_kernel_action.connect('activate', self.on_wsmenu_restart_kernel)
+        self.add_action(self.restart_kernel_action)
+        self.rename_ws_action = Gio.SimpleAction.new('rename_worksheet', None)
+        self.rename_ws_action.connect('activate', self.on_wsmenu_rename)
+        self.add_action(self.rename_ws_action)
+        self.delete_ws_action = Gio.SimpleAction.new('delete_worksheet', None)
+        self.delete_ws_action.connect('activate', self.on_wsmenu_delete)
+        self.add_action(self.delete_ws_action)
+        self.export_gsnb_ws_action = Gio.SimpleAction.new('export_gsnb_worksheet', None)
+        self.export_gsnb_ws_action.connect('activate', self.on_wsmenu_gsnb_export)
+        self.add_action(self.export_gsnb_ws_action)
 
         #preferences_section = Gio.Menu()
         #item = Gio.MenuItem.new('Preferences', 'app.show_preferences_window')
@@ -1011,14 +754,14 @@ class MainApplicationController(Gtk.Application):
         
         response = self.delete_ws_dialog.run()
         if response == Gtk.ResponseType.YES:
-            row_index = self.main_window.worksheet_list_view.get_row_index_by_worksheet_id(worksheet.get_id())
-            row = self.main_window.worksheet_list_view.get_row_at_index(row_index + 1)
+            row_index = self.main_window.sidebar.worksheet_list_view.get_row_index_by_worksheet(worksheet)
+            row = self.main_window.sidebar.worksheet_list_view.get_row_at_index(row_index + 1)
             if row != None:
-                self.main_window.worksheet_list_view.select_row(row)
+                self.main_window.sidebar.worksheet_list_view.select_row(row)
             else:
-                row = self.main_window.worksheet_list_view.get_row_at_index(row_index - 1)
+                row = self.main_window.sidebar.worksheet_list_view.get_row_at_index(row_index - 1)
                 if row != None:
-                    self.main_window.worksheet_list_view.select_row(row)
+                    self.main_window.sidebar.worksheet_list_view.select_row(row)
                 else:
                     self.activate_blank_state_mode()
 
@@ -1043,20 +786,6 @@ class MainApplicationController(Gtk.Application):
             
             last_allocation = result_view_revealer.allocation
             result_view_revealer.allocation = allocation
-            if cell_position > result_position:
-                worksheet_view.scroll(allocation.height - last_allocation.height)
-        
-    def cell_view_revealer_on_size_allocate(self, cell_view_revealer, allocation):
-        cell = self.notebook.active_worksheet.get_active_cell()
-        if cell != None:
-            worksheet_view = self.main_window.active_worksheet_view
-            cell_view_position = cell.get_worksheet_position() * 2
-            cell_view = worksheet_view.get_child_by_position(cell_view_position)
-            x, cell_position = cell_view.translate_coordinates(worksheet_view.box, 0, 0)
-            x, result_position = cell_view_revealer.translate_coordinates(worksheet_view.box, 0, 0)
-            
-            last_allocation = cell_view_revealer.allocation
-            cell_view_revealer.allocation = allocation
             if cell_position > result_position:
                 worksheet_view.scroll(allocation.height - last_allocation.height)
         
@@ -1188,7 +917,7 @@ class MainApplicationController(Gtk.Application):
                 prev_cell = worksheet.get_prev_cell(cell)
                 if not prev_cell == None:
                     worksheet.set_active_cell(prev_cell)
-                    self.place_cursor_on_last_line(prev_cell)
+                    self.cell_controllers[prev_cell].place_cursor_on_last_line()
                     return True
 
             if cell.get_worksheet_position() > 0:
@@ -1196,7 +925,7 @@ class MainApplicationController(Gtk.Application):
                     prev_cell = worksheet.get_prev_cell(cell)
                     if not prev_cell == None:
                         worksheet.set_active_cell(prev_cell)
-                        self.place_cursor_on_last_line(prev_cell)
+                        self.cell_controllers[prev_cell].place_cursor_on_last_line()
                         return True
         
         # switch cells with arrow keys: downward
@@ -1227,9 +956,9 @@ class MainApplicationController(Gtk.Application):
                 prev_cell = worksheet.get_prev_cell(cell)
                 if not prev_cell == None:
                     worksheet.set_active_cell(prev_cell)
-                    self.place_cursor_on_last_line(prev_cell)
+                    self.cell_controllers[prev_cell].place_cursor_on_last_line()
                     cell.remove_result()
-                    worksheet.delete_cell(cell)
+                    worksheet.remove_cell(cell)
                     return True
             if isinstance(cell, model.MarkdownCell):
                 if cell.get_result() != None or cell.get_char_count() == 0:
@@ -1237,14 +966,14 @@ class MainApplicationController(Gtk.Application):
                     next_cell = worksheet.get_next_cell(cell)
                     if not prev_cell == None: 
                         worksheet.set_active_cell(prev_cell)
-                        self.place_cursor_on_last_line(prev_cell)
+                        self.cell_controllers[prev_cell].place_cursor_on_last_line()
                     elif not next_cell == None:
                         worksheet.set_active_cell(next_cell)
                         next_cell.place_cursor(next_cell.get_start_iter())
                     else:
                         worksheet.create_cell('last', '', activate=True)
                     cell.remove_result()
-                    worksheet.delete_cell(cell)
+                    worksheet.remove_cell(cell)
                     return True
                     
         # edit markdown cell with enter

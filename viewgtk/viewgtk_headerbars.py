@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# Copyright (C) 2017 Robert Griesel
+# Copyright (C) 2017, 2018 Robert Griesel
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -70,6 +70,22 @@ class HeaderBar(Gtk.Paned):
 
     def deactivate_save_button(self):
         self.hb_right.save_button.set_sensitive(False)
+
+    def activate_revert_button(self):
+        self.hb_right.revert_button.set_sensitive(True)
+
+    def deactivate_revert_button(self):
+        self.hb_right.revert_button.set_sensitive(False)
+
+    def activate_documentation_mode(self):
+        if self.hb_right.save_button.get_parent() == None:
+            self.hb_right.remove(self.hb_right.revert_button)
+            self.hb_right.pack_end(self.hb_right.save_button)
+
+    def deactivate_documentation_mode(self):
+        if self.hb_right.revert_button.get_parent() == None:
+            self.hb_right.remove(self.hb_right.save_button)
+            self.hb_right.pack_end(self.hb_right.revert_button)
 
 
 class HeaderBarLeft(Gtk.HeaderBar):
@@ -187,6 +203,11 @@ class HeaderBarRight(Gtk.HeaderBar):
         self.save_button.set_tooltip_text('Save the currently opened file')
         self.save_button.set_focus_on_click(False)
 
+        self.revert_button = Gtk.Button()
+        self.revert_button.set_label('Revert Changes')
+        self.revert_button.set_tooltip_text('Set worksheet back to it\'s original state')
+        self.revert_button.set_focus_on_click(False)
+
     def show_buttons(self):
         self.pack_start(self.add_cell_box)
         self.pack_start(self.move_cell_box)
@@ -206,6 +227,6 @@ class HeaderBarRight(Gtk.HeaderBar):
         return Gtk.SizeRequestMode.CONSTANT_SIZE
                      
     def do_get_preferred_width(self):
-        return 520, 520
+        return 763, 763
         
         

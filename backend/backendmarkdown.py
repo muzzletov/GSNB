@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# Copyright (C) 2017 Robert Griesel
+# Copyright (C) 2017, 2018 Robert Griesel
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -122,9 +122,9 @@ class ComputeQueue(object):
 
 class MarkdownQuery():
 
-    def __init__(self, worksheet_id, cell, query_string = ''):
+    def __init__(self, worksheet, cell, query_string = ''):
         self.set_query_string(query_string)
-        self.worksheet_id = worksheet_id
+        self.worksheet = worksheet
         self.cell = cell
         self.state = 'idle'
         self.ignore_counter = 0
@@ -228,7 +228,7 @@ class MarkdownQuery():
         result_blob = self.wrapper_start + result_blob + 'SPLITMARKER' + self.wrapper_end
 
         self.state = 'idle'
-        return {'worksheet_id': self.worksheet_id, 'cell': self.cell, 'result_blob': result_blob}
+        return {'worksheet': self.worksheet, 'cell': self.cell, 'result_blob': result_blob}
     
     def stop_evaluation(self):
         if self.state == 'busy':

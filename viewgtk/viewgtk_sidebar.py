@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# Copyright (C) 2017 Robert Griesel
+# Copyright (C) 2017, 2018 Robert Griesel
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -23,14 +23,14 @@ import datetime
 import time
 
 
-class DocumentListViewItem(Gtk.ListBoxRow):
+class WorksheetListViewItem(Gtk.ListBoxRow):
     ''' Link in sidebar to activate worksheets or documentation, show some data about it '''
 
-    def __init__(self, document_name, document_id, last_saved=None, last_accessed=None):
+    def __init__(self, worksheet, last_saved=None, last_accessed=None):
         Gtk.ListBoxRow.__init__(self)
         
-        self.document_name = document_name
-        self.document_id = document_id
+        self.worksheet_name = worksheet.get_name()
+        self.worksheet = worksheet
         self.last_saved = last_saved
         self.last_accessed = last_accessed
         
@@ -43,12 +43,15 @@ class DocumentListViewItem(Gtk.ListBoxRow):
         self.name.set_ellipsize(Pango.EllipsizeMode.END)
         self.name.get_style_context().add_class('wslist_name')
 
+    def get_worksheet(self):
+        return self.worksheet
+        
 
-class WorksheetListViewItem(DocumentListViewItem):
+class NormalWorksheetListViewItem(WorksheetListViewItem):
     ''' Link in sidebar to activate worksheet, show some data about it '''
     
-    def __init__(self, worksheet_name, worksheet_id, last_saved, last_accessed=None):
-        DocumentListViewItem.__init__(self, worksheet_name, worksheet_id, last_saved, None)
+    def __init__(self, worksheet, last_saved, last_accessed=None):
+        WorksheetListViewItem.__init__(self, worksheet, last_saved, None)
         
         self.icon = Gtk.Image.new_from_file('./resources/sage_icon_2.png')
         self.icon.get_style_context().add_class('wslist_icon')
@@ -78,16 +81,13 @@ class WorksheetListViewItem(DocumentListViewItem):
         self.box.get_style_context().add_class('wslist_wrapper')
         self.add(self.box)
         
-        self.set_name(self.document_name)
+        self.set_name(self.worksheet_name)
         self.set_last_save(last_saved)
         self.set_state('idle.')
         
-    def get_worksheet_id(self):
-        return self.document_id
-        
     def set_name(self, new_name):
-        self.document_name = new_name
-        self.name.set_text(self.document_name)
+        self.worksheet_name = new_name
+        self.name.set_text(self.worksheet_name)
         
     def set_last_save(self, new_date):
         self.last_saved = new_date
@@ -111,11 +111,11 @@ class WorksheetListViewItem(DocumentListViewItem):
         self.state.set_text(new_state)
         
 
-class DocumentationListViewItem(DocumentListViewItem):
+class DocumentationWorksheetListViewItem(WorksheetListViewItem):
     ''' Link in sidebar to activate worksheet, show some data about it '''
     
-    def __init__(self, worksheet_name, worksheet_id, last_saved, last_accessed=None):
-        DocumentListViewItem.__init__(self, worksheet_name, worksheet_id, last_saved, None)
+    def __init__(self, worksheet, last_saved, last_accessed=None):
+        WorksheetListViewItem.__init__(self, worksheet, last_saved, None)
         
         self.icon = Gtk.Image.new_from_file('./resources/sage_icon_2.png')
         self.icon.get_style_context().add_class('wslist_icon')
@@ -145,16 +145,13 @@ class DocumentationListViewItem(DocumentListViewItem):
         self.box.get_style_context().add_class('wslist_wrapper')
         self.add(self.box)
         
-        self.set_name(document_name)
+        self.set_name(self.worksheet_name)
         self.set_last_save(last_saved)
         self.set_state('idle.')
         
-    def get_worksheet_id(self):
-        return self.document_id
-        
     def set_name(self, new_name):
-        self.document_name = new_name
-        self.name.set_text(self.document_name)
+        self.worksheet_name = new_name
+        self.name.set_text(self.worksheet_name)
         
     def set_last_save(self, new_date):
         self.last_saved = new_date
@@ -190,28 +187,19 @@ class WorksheetListView(Gtk.ListBox):
         self.items = dict()
         
     def add_item(self, item):
-        self.items[item.get_worksheet_id()] = item
+        self.items[item.get_worksheet()] = item
         self.prepend(item)
         self.show_all()
         
-    def do_get_request_mode(self):
-        return Gtk.SizeRequestMode.CONSTANT_SIZE
-                     
-    def do_get_preferred_width(self):
-        return 250, 250
-    
-    def do_get_preferred_height(self):
-        return 400, 400
-        
-    def get_row_index_by_worksheet_id(self, worksheet_id):
+    def get_row_index_by_worksheet(self, worksheet):
         index = 0
         for row in self.get_children():
-            if row.get_worksheet_id() == worksheet_id:
+            if row.get_worksheet() == worksheet:
                 return index
             index += 1
             
-    def get_item_by_worksheet_id(self, worksheet_id):
-        try: item = self.items[worksheet_id]
+    def get_item_by_worksheet(self, worksheet):
+        try: item = self.items[worksheet]
         except KeyError: pass
         else: return item
             
@@ -232,9 +220,51 @@ class DocumentationListView(Gtk.ListBox):
         self.items = dict()
         
     def add_item(self, item):
-        self.items[item.get_worksheet_id()] = item
+        self.items[item.get_worksheet()] = item
         self.prepend(item)
         self.show_all()
+        
+    def get_row_index_by_worksheet(self, worksheet):
+        index = 0
+        for row in self.get_children():
+            if row.get_worksheet() == worksheet:
+                return index
+            index += 1
+            
+    def get_item_by_worksheet(self, worksheet):
+        try: item = self.items[worksheet]
+        except KeyError: pass
+        else: return item
+           
+    def sort(self, row1, row2):
+        if row1.last_accessed > row2.last_accessed: return -1
+        elif row1.last_accessed < row2.last_accessed: return 1
+        else: return 0
+
+
+class Sidebar(Gtk.Paned):
+    ''' As name suggests, this is the left hand sidebar. '''
+
+    def __init__(self):
+        Gtk.Paned.__init__(self)
+        self.set_orientation(Gtk.Orientation.VERTICAL)
+        
+        self.worksheet_list_view = WorksheetListView()
+        self.documentation_list_view = DocumentationListView()
+
+        self.worksheet_list_view_wrapper = Gtk.ScrolledWindow()
+        self.worksheet_list_view_wrapper.add(self.worksheet_list_view)
+        self.worksheet_list_view_wrapper.set_size_request(-1, 240)
+        self.documentation_list_view_wrapper = Gtk.ScrolledWindow()
+        self.documentation_list_view_wrapper.add(self.documentation_list_view)
+        self.documentation_list_view_wrapper.set_size_request(-1, 240)
+        
+        self.pack1(self.worksheet_list_view_wrapper, False, False)
+        self.pack2(self.documentation_list_view_wrapper, True, False)
+
+        #TODO center
+        self.set_position(350)
+        self.paned_position = self.get_position()
         
     def do_get_request_mode(self):
         return Gtk.SizeRequestMode.CONSTANT_SIZE
@@ -243,42 +273,6 @@ class DocumentationListView(Gtk.ListBox):
         return 250, 250
     
     def do_get_preferred_height(self):
-        return 400, 400
-        
-    def get_row_index_by_document_id(self, document_id):
-        index = 0
-        for row in self.get_children():
-            if row.get_document_id() == document_id:
-                return index
-            index += 1
-            
-    def get_item_by_document_id(self, document_id):
-        try: item = self.items[document_id]
-        except KeyError: pass
-        else: return item
-           
-    #TODO order by last accessed 
-    def sort(self, row1, row2):
-        if row1.last_accessed > row2.last_accessed: return -1
-        elif row1.last_accessed < row2.last_accessed: return 1
-        else: return 0
-
-
-class Sidebar(Gtk.VPaned):
-    ''' As name suggests, this is the left hand sidebar. '''
-
-    def __init__(self):
-        Gtk.VPaned.__init__(self)
-        
-        self.worksheet_list_view = WorksheetListView()
-        self.toolbox = DocumentationListView()
-        
-        # TODO beide mit size request
-        
-        self.pack1(self.worksheet_list_view, False, False)
-        self.pack2(self.toolbox, False, False)
-        # TODO Center
-        self.set_position(250)
-        self.paned_position = self.get_position()
+        return 500, 500
         
         

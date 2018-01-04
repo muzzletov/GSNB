@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# Copyright (C) 2017 Robert Griesel
+# Copyright (C) 2017, 2018 Robert Griesel
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -41,7 +41,7 @@ class ComputeQueue(object):
         GObject.timeout_add(50, self.results_loop)
         GObject.timeout_add(50, self.change_code_loop)
         
-    def compute_loop(self, worksheet_id):
+    def compute_loop(self, worksheet):
         ''' wait for queries, run them and put results on the queue.
             this method runs in thread. '''
 
@@ -49,21 +49,21 @@ class ComputeQueue(object):
             time.sleep(0.05)
             
             # if query complete set state idle
-            if self.get_state(worksheet_id) == 'busy':
-                self.states[worksheet_id] = self.active_queries[worksheet_id].get_state()
+            if self.get_state(worksheet) == 'busy':
+                self.states[worksheet] = self.active_queries[worksheet].get_state()
             
             # check for tasks, start computation
-            if self.get_state(worksheet_id) == 'idle':
+            if self.get_state(worksheet) == 'idle':
                 try:
-                    self.active_queries[worksheet_id] = self.query_queues[worksheet_id].get(block=False)
+                    self.active_queries[worksheet] = self.query_queues[worksheet].get(block=False)
                 except queue.Empty:
                     pass
                 else:
-                    cell = self.active_queries[worksheet_id].get_cell()
-                    if self.active_queries[worksheet_id].ignore_counter >= self.query_ignore_counter.get(cell, 0):
-                        self.states[worksheet_id] = 'busy'
-                        self.add_change_code('evaluation_started', self.active_queries[worksheet_id])
-                        result_blob = self.active_queries[worksheet_id].evaluate(self.interface)
+                    cell = self.active_queries[worksheet].get_cell()
+                    if self.active_queries[worksheet].ignore_counter >= self.query_ignore_counter.get(cell, 0):
+                        self.states[worksheet] = 'busy'
+                        self.add_change_code('evaluation_started', self.active_queries[worksheet])
+                        result_blob = self.active_queries[worksheet].evaluate(self.interface)
                         self.add_result_blob(result_blob)
                     else: pass
                         
@@ -105,71 +105,71 @@ class ComputeQueue(object):
             self.add_change_code('evaluation_finished', result_blob)
         return True
         
-    def get_state(self, worksheet_id):
-        if not worksheet_id in self.states.keys():
-            self.states[worksheet_id] = 'idle'
-        return self.states[worksheet_id]
+    def get_state(self, worksheet):
+        if not worksheet in self.states.keys():
+            self.states[worksheet] = 'idle'
+        return self.states[worksheet]
         
-    def get_active_query(self, worksheet_id):
-        if not worksheet_id in self.active_queries.keys():
-            self.active_queries[worksheet_id] = None
-        return self.active_queries[worksheet_id]
+    def get_active_query(self, worksheet):
+        if not worksheet in self.active_queries.keys():
+            self.active_queries[worksheet] = None
+        return self.active_queries[worksheet]
         
-    def get_query_queue(self, worksheet_id):
-        if not worksheet_id in self.query_queues.keys():
-            self.query_queues[worksheet_id] = queue.Queue()
-            thread.start_new_thread(self.compute_loop, (worksheet_id,))
-        return self.query_queues[worksheet_id]
+    def get_query_queue(self, worksheet):
+        if not worksheet in self.query_queues.keys():
+            self.query_queues[worksheet] = queue.Queue()
+            thread.start_new_thread(self.compute_loop, (worksheet,))
+        return self.query_queues[worksheet]
     
     def add_query(self, query):
-        queue = self.get_query_queue(query.worksheet_id)
+        queue = self.get_query_queue(query.worksheet)
         query.ignore_counter = self.query_ignore_counter.get(query.get_cell(), 0) + 1
         queue.put(query)
         self.add_change_code('query_queued', query)
         
     def stop_evaluation_by_cell(self, cell):
-        worksheet_id = cell.get_worksheet().get_id()
-        queue = self.get_query_queue(worksheet_id)
+        worksheet = cell.get_worksheet()
+        queue = self.get_query_queue(worksheet)
         self.query_ignore_counter[cell] = 1 + self.query_ignore_counter.get(cell, 0)
-        if self.get_state(worksheet_id) == 'busy' and self.get_active_query(worksheet_id).get_cell() == cell:
-            self.active_queries[worksheet_id].stop_evaluation()
-            self.states[worksheet_id] = 'idle'
+        if self.get_state(worksheet) == 'busy' and self.get_active_query(worksheet).get_cell() == cell:
+            self.active_queries[worksheet].stop_evaluation()
+            self.states[worksheet] = 'idle'
         self.add_change_code_now('cell_evaluation_stopped', cell)
         
-    def stop_evaluation_by_worksheet(self, worksheet_id):
-        queue = self.get_query_queue(worksheet_id)
+    def stop_evaluation_by_worksheet(self, worksheet):
+        queue = self.get_query_queue(worksheet)
 
         while not queue.empty():
             query = queue.get(block=False)
             cell = query.get_cell()
             self.add_change_code_now('cell_evaluation_stopped', cell)
             
-        if self.get_state(worksheet_id) == 'busy':
-            cell = self.get_active_query(worksheet_id).get_cell()
-            self.get_active_query(worksheet_id).stop_evaluation()
+        if self.get_state(worksheet) == 'busy':
+            cell = self.get_active_query(worksheet).get_cell()
+            self.get_active_query(worksheet).stop_evaluation()
             self.add_change_code_now('cell_evaluation_stopped', cell)
 
-        self.states[worksheet_id] = 'idle'
+        self.states[worksheet] = 'idle'
         
     def add_result_blob(self, result):
         self.result_blobs_queue.put(result)
             
     def start_process(self, worksheet):
-        self.interface.get_process(worksheet.get_id())
+        self.interface.get_process(worksheet)
         self.add_change_code('kernel_started', worksheet)
     
     def restart_process(self, worksheet):
         while len(worksheet.busy_cells) > 0:
             time.sleep(0.05)
-        self.interface.stop_process(worksheet.get_id())
+        self.interface.stop_process(worksheet)
         thread.start_new_thread(self.start_process, (worksheet,))
     
 
 class SageMathQuery():
 
-    def __init__(self, worksheet_id, cell, query_string = ''):
+    def __init__(self, worksheet, cell, query_string = ''):
         self.set_query_string(query_string)
-        self.worksheet_id = worksheet_id
+        self.worksheet = worksheet
         self.cell = cell
         self.state = 'idle'
         self.interface = None
@@ -182,10 +182,10 @@ class SageMathQuery():
         self.interface = interface
         self.state = 'busy'
         query_string = self.query_string
-        result_blob = interface.run(self.query_string, self.worksheet_id, sage_mode)
+        result_blob = interface.run(self.query_string, self.worksheet, sage_mode)
         
         self.state = 'idle'
-        return {'worksheet_id': self.worksheet_id, 'cell': self.cell, 'result_blob': result_blob}
+        return {'worksheet': self.worksheet, 'cell': self.cell, 'result_blob': result_blob}
     
     def stop_evaluation(self):
         if self.state == 'busy':
@@ -208,8 +208,8 @@ class SageMathProcess():
     def start(self):
         ''' initialize python process '''
         
-        os.environ['SAGE_LOCAL'] = '/usr/share/sagemath/'
-        self.process = pexpect.spawn('python2.7')
+        #os.environ['SAGE_LOCAL'] = '/usr/share/sagemath/'
+        self.process = pexpect.spawn('sage --python')
         self.process.expect('>>> ', timeout=None)
         self.process.sendline('import sys')
         self.process.expect('>>> ', timeout=None)
@@ -219,7 +219,9 @@ class SageMathProcess():
         self.process.expect('>>> ', timeout=None)
         self.process.sendline('import os; import base64')
         self.process.expect('>>> ', timeout=None)
-        self.process.sendline('import sagenb.misc.support as _support_; from sage.all_notebook import *')
+        self.process.sendline('import sagenb.misc.support as _support_')
+        self.process.expect('>>> ', timeout=None)
+        self.process.sendline('from sage.all_notebook import *')
         self.process.expect('>>> ', timeout=None)
         self.process.sendline('from sage.misc.displayhook import DisplayHook')
         self.process.expect('>>> ', timeout=None)
@@ -292,30 +294,30 @@ class InterfacePexpect():
         
         self.sagemath_processes = {}
     
-    def get_process(self, worksheet_id):
+    def get_process(self, worksheet):
         ''' Returns present or new sagemath process. '''
         
-        if not str(worksheet_id) in self.sagemath_processes.keys():
-            self.sagemath_processes[str(worksheet_id)] = SageMathProcess()
-            self.sagemath_processes[str(worksheet_id)].start()
+        if not worksheet in self.sagemath_processes.keys():
+            self.sagemath_processes[worksheet] = SageMathProcess()
+            self.sagemath_processes[worksheet].start()
         else:
-            while self.sagemath_processes[str(worksheet_id)].state == 'not started':
+            while self.sagemath_processes[worksheet].state == 'not started':
                 time.sleep(0.05)
-            return self.sagemath_processes[str(worksheet_id)]
+            return self.sagemath_processes[worksheet]
         
-    def stop_process(self, worksheet_id):
+    def stop_process(self, worksheet):
         ''' Kills sagemath process if present. '''
 
-        if str(worksheet_id) in self.sagemath_processes.keys():
-            del(self.sagemath_processes[str(worksheet_id)])
+        if worksheet in self.sagemath_processes.keys():
+            del(self.sagemath_processes[worksheet])
 
-    def run(self, query_string, worksheet_id, sage_mode = True):
-        process = self.get_process(worksheet_id)
+    def run(self, query_string, worksheet, sage_mode = True):
+        process = self.get_process(worksheet)
         process.stop_computation()
         return process.run(query_string, sage_mode)
         
-    def stop_computation_by_worksheet(self, worksheet_id):
-        process = self.get_process(worksheet_id)
+    def stop_computation_by_worksheet(self, worksheet):
+        process = self.get_process(worksheet)
         process.stop_computation()
         
     def stop_computation(self):

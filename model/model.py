@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# Copyright (C) 2017 Robert Griesel
+# Copyright (C) 2017, 2018 Robert Griesel
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -60,9 +60,20 @@ class Notebook(Observable):
         Observable.__init__(self)
 
         self.worksheets = dict()
+        self.documentation_worksheets = dict()
         self.pathname = None
         self.history = None
         self.active_worksheet = None
+        
+    def populate_documentation(self):
+        ''' Load documentation from gsnb program folder. '''
+        
+        for filename in os.listdir('./resources/documentation'):
+            if os.path.isdir('./resources/documentation/' + filename): # not sure if this is safe
+                worksheet = DocumentationWorksheet(self)
+                worksheet.set_pathname('./resources/documentation/' + filename)
+                worksheet.populate_meta()
+                self.add_documentation_worksheet(worksheet)
         
     def populate_from_path(self, pathname):
         ''' Load worksheets from gsnb path. '''
@@ -74,13 +85,17 @@ class Notebook(Observable):
         
         for filename in os.listdir(self.pathname):
             if os.path.isdir(self.pathname + '/' + filename): # not sure if this is safe
-                worksheet = Worksheet(self)
+                worksheet = NormalWorksheet(self)
                 worksheet.set_pathname(self.pathname + '/' + filename)
                 worksheet.populate_meta()
                 self.add_worksheet(worksheet)
         
     def add_worksheet(self, worksheet):
         self.worksheets[worksheet.get_id()] = worksheet
+        self.add_change_code('new_worksheet', worksheet)
+    
+    def add_documentation_worksheet(self, worksheet):
+        self.documentation_worksheets[worksheet.get_id()] = worksheet
         self.add_change_code('new_worksheet', worksheet)
     
     def set_active_worksheet(self, worksheet):
@@ -144,7 +159,7 @@ class Worksheet(Observable):
         self.notebook = notebook
         self.pathname = ''
         self.save_state = 'saved'
-        self.meta = {'ratings': [], 'collaborators': [], 'saved_by_info': {}, 'name': 'Untitled', 'tags': {}, 'id_number': 0, 'pretty_print': True, 'system': 'sage', 'live_3D': False, 'published_id_number': None, 'owner': u'admin', 'auto_publish': False, 'last_change': ('admin', time.time()), 'worksheet_that_was_published': None, 'viewers': []}
+        self.meta = {'name': 'Untitled', 'tags': {}, 'id_number': 0, 'backend': 'sage', 'last_change': ('admin', time.time()), 'last_accessed': datetime.datetime.fromtimestamp(0)}
         self.last_saved = datetime.datetime.fromtimestamp(0)
         self.cells = []
         self.active_cell = None
@@ -185,6 +200,7 @@ class Worksheet(Observable):
             API, in fact it ignores most data and only reads code cells. '''
             
         self.populate_cells_from_pathname(self.pathname)
+        self.set_last_accessed()
             
     def populate_cells_from_pathname(self, pathname):
         ''' Loads data from a sagenb worksheet path. For this has only been
@@ -253,6 +269,10 @@ class Worksheet(Observable):
                             
                 if activate: self.create_cell(position='last', text='', activate=True)
                 self.set_save_state('saved')
+                
+    def remove_all_cells(self):
+        while len(self.cells) > 0:
+            self.remove_cell(self.cells[0])
         
     def create_cell(self, position='last', text='', activate=False, set_unmodified=True):
         ''' Creates a code cell, then adds it to worksheet. '''
@@ -303,7 +323,7 @@ class Worksheet(Observable):
         else:
             self.set_save_state('saved')
     
-    def delete_cell(self, cell):
+    def remove_cell(self, cell):
         try: index = self.cells.index(cell)
         except ValueError: pass
         else:
@@ -419,10 +439,6 @@ class Worksheet(Observable):
     def get_name(self):
         return self.meta['name']
         
-    def set_name(self, name):
-        self.meta['name'] = name
-        self.add_change_code('worksheet_name_changed', name)
-        
     def set_id(self, id):
         self.meta['id_number'] = id
         
@@ -431,6 +447,12 @@ class Worksheet(Observable):
         
     def get_last_saved(self):
         return self.last_saved
+        
+    def set_last_accessed(self):
+        self.meta['last_accessed'] = datetime.datetime.now()
+
+    def get_last_accessed(self):
+        return self.meta.get('last_accessed', datetime.datetime.fromtimestamp(0))
         
     def set_kernel_state(self, state):
         self.kernel_state = state
@@ -471,6 +493,22 @@ class Worksheet(Observable):
     def is_active_worksheet(self):
         return True if self.notebook.get_active_worksheet() == self else False
         
+
+class NormalWorksheet(Worksheet):
+
+    def __init__(self, notebook):
+        Worksheet.__init__(self, notebook)
+
+    def set_name(self, name):
+        self.meta['name'] = name
+        self.add_change_code('worksheet_name_changed', name)
+        
+
+class DocumentationWorksheet(Worksheet):
+
+    def __init__(self, notebook):
+        Worksheet.__init__(self, notebook)
+
 
 class Cell(GtkSource.Buffer, Observable):
 

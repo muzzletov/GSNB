@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# Copyright (C) 2017 Robert Griesel
+# Copyright (C) 2017, 2018 Robert Griesel
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -32,7 +32,7 @@ class BackendControllerMarkdown():
         if change_code == 'cell_state_change' and parameter == 'ready_for_evaluation':
             cell = notifying_object
             query_string = cell.get_text(cell.get_start_iter(), cell.get_end_iter(), False)
-            query = MarkdownQuery(cell.worksheet.get_id(), cell, query_string)
+            query = MarkdownQuery(cell.worksheet, cell, query_string)
             self.compute_queue.add_query(query)
             
         if change_code == 'cell_state_change' and parameter == 'evaluation_to_stop':
@@ -87,12 +87,12 @@ class BackendControllerSageMath():
         
         if change_code == 'ws_evaluation_to_stop':
             worksheet = notifying_object
-            self.compute_queue.stop_evaluation_by_worksheet(worksheet.get_id())
+            self.compute_queue.stop_evaluation_by_worksheet(worksheet)
         
         if change_code == 'cell_state_change' and parameter == 'ready_for_evaluation':
             cell = notifying_object
             query_string = cell.get_text(cell.get_start_iter(), cell.get_end_iter(), False)
-            query = SageMathQuery(cell.worksheet.get_id(), cell, query_string)
+            query = SageMathQuery(cell.worksheet, cell, query_string)
             self.compute_queue.add_query(query)
             
         if change_code == 'cell_state_change' and parameter == 'evaluation_to_stop':

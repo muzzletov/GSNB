@@ -1,0 +1,1171 @@
+MD{{{id=0|
+# Absolute Beginners' Guide to GSNB and SageMath
+
+<em>(based in part on "A tour of Sage" from the <a href="http://doc.sagemath.org/html/en/a_tour_of_sage/index.html">SageMath Website</a>)</em>
+
+## Introducing GSNB
+
+TODO GSNB is a notebook style programming environment similar to Jupyter, the Mathematica Notebook and others. The basic idea is to create **worksheets** with **cells** of code or formulae which you then **evaluate** to get an instant answer.
+
+This guide is itself a worksheet, so you can try out all that is explained right here. But don't worry your changes will not be saved and you can always reset this worksheet to it's original state by clicking the "Revert changes" Button in the header bar above.
+
+### Working with cells
+
+To try it out simply click on the cell below ("1+1") and hit *Shift+Enter* to **evaluate the cell** and get the right answer ("2"). You can also click the PLAY button in the header bar instead.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERAbsolute Beginners' Guide to GSNB and SageMathSPLITMARKER</property>
+                <style>
+                    <class name="h1"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-1">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKER<i>(based in part on "A tour of Sage" from the <a href="http://doc.sagemath.org/html/en/a_tour_of_sage/index.html">SageMath Website</a>)</i>SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-2">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERIntroducing GSNBSPLITMARKER</property>
+                <style>
+                    <class name="h2"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">2</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-3">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERTODO GSNB is a notebook style programming environment similar to Jupyter, the Mathematica Notebook and others. The basic idea is to create <b>worksheets</b> with <b>cells</b> of code or formulae which you then <b>evaluate</b> to get an instant answer.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-4">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERThis guide is itself a worksheet, so you can try out all that is explained right here. But don't worry your changes will not be saved and you can always reset this worksheet to it's original state by clicking the "Revert changes" Button in the header bar above.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">4</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-5">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERWorking with cellsSPLITMARKER</property>
+                <style>
+                    <class name="h3"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">5</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-6">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERTo try it out simply click on the cell below ("1+1") and hit <i>Shift+Enter</i> to <b>evaluate the cell</b> and get the right answer ("2"). You can also click the PLAY button in the header bar instead.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">6</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=1|
+1+1
+///
+2
+}}}
+MD{{{id=2|
+Of course you can also change the numbers to something different ("10+3" for example) and still get the right answer ("13"). The answers are coming from the SageMath Computer Algebra System which in fact supports a LOT of different calculations, plotting, ... not just simple calculator type formulae, as we will soon find out.
+
+**Evaluations are queued** automatically. You can evaluate more than one cell at once and SageMath will work through them in the order of submission.
+
+To **stop evaluation** just hit the STOP button in the header bar. This can be very helpful if some computation is taking longer than expexted. The two cells below ("sleep(60)") for example take a rather long time to evaluate (1 minute). Try it out. Click on the first cell, hit Shift+Enter to start evaluating and then evaluate the second cell as well. The second evaluation will be queued. Now hit the STOP button to stop any evaluation going on in this worksheet. The "sleep(60)" command btw. does nothing at all except wait for 60 seconds.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKEROf course you can also change the numbers to something different ("10+3" for example) and still get the right answer ("13"). The answers are coming from the SageMath Computer Algebra System which in fact supports a LOT of different calculations, plotting, ... not just simple calculator type formulae, as we will soon find out.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-1">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKER<b>Evaluations are queued</b> automatically. You can evaluate more than one cell at once and SageMath will work through them in the order of submission.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-2">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERTo <b>stop evaluation</b> just hit the STOP button in the header bar. This can be very helpful if some computation is taking longer than expexted. The two cells below ("sleep(60)") for example take a rather long time to evaluate (1 minute). Try it out. Click on the first cell, hit Shift+Enter to start evaluating and then evaluate the second cell as well. The second evaluation will be queued. Now hit the STOP button to stop any evaluation going on in this worksheet. The "sleep(60)" command btw. does nothing at all except wait for 60 seconds.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=3|
+sleep(60)
+///
+}}}
+{{{id=4|
+sleep(60)
+///
+}}}
+MD{{{id=5|
+
+
+There are **2 types of cells** in GSNB: **code cells** and **markdown(or text) cells**. We will concern ourselves only with the former for now but note that this text you're reading is also contained in a cell. The **currently active cell** is always marked with a green bar on the side.
+
+You can **create new cells** by clicking the ADD button in the header bar or hitting *Alt+Enter*. This will insert a newly created cell below the currently active cell (that's the one with the green bar).
+
+To **move cells around** use the UP / DOWN buttons in the header bar. Or **delete cells** with the DELETE button.
+
+Just try it out. Create a few cells, move them around and delete them again. Remember you can always reset this worksheet to it's original state by clicking the "Revert changes" Button in the header bar above.
+
+### Managing Worksheets
+
+
+
+### Creating new worksheets and importing existing ones
+
+### Saving and Exporting
+
+Share them with others.
+
+To import again
+
+### Deleting
+
+Try it out: Create an empty worksheet, export it, delete it import it again.( Or delete it once and for all if you want.)
+
+### and Renaming
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERThere are <b>2 types of cells</b> in GSNB: <b>code cells</b> and <b>markdown(or text) cells</b>. We will concern ourselves only with the former for now but note that this text you're reading is also contained in a cell. The <b>currently active cell</b> is always marked with a green bar on the side.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-1">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERYou can <b>create new cells</b> by clicking the ADD button in the header bar or hitting <i>Alt+Enter</i>. This will insert a newly created cell below the currently active cell (that's the one with the green bar).SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-2">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERTo <b>move cells around</b> use the UP / DOWN buttons in the header bar. Or <b>delete cells</b> with the DELETE button.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-3">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERJust try it out. Create a few cells, move them around and delete them again. Remember you can always reset this worksheet to it's original state by clicking the "Revert changes" Button in the header bar above.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-4">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERManaging WorksheetsSPLITMARKER</property>
+                <style>
+                    <class name="h3"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">4</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-5">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERCreating new worksheets and importing existing onesSPLITMARKER</property>
+                <style>
+                    <class name="h3"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">5</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-6">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERSaving and ExportingSPLITMARKER</property>
+                <style>
+                    <class name="h3"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">6</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-7">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERShare them with others.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">7</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-8">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERTo import againSPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">8</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-9">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERDeletingSPLITMARKER</property>
+                <style>
+                    <class name="h3"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">9</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-10">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERTry it out: Create an empty worksheet, export it, delete it import it again.( Or delete it once and for all if you want.)SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">10</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-11">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERand RenamingSPLITMARKER</property>
+                <style>
+                    <class name="h3"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">11</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+MD{{{id=6|
+
+
+
+
+ But it's also designed to be easy to learn.
+
+
+leerzeichen werden ignoriert
+
+
+Variables are cached. With an example to illustrate.
+
+
+
+## Sage as a Calculator
+To do calculations with sage simply click on an input cell, enter your formula and press shift-enter to compute the corresponding output. You can also click on the "play" button in the headerbar. Just try it out:
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERBut it's also designed to be easy to learn.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-1">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERleerzeichen werden ignoriertSPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-2">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERVariables are cached. With an example to illustrate.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-3">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERSage as a CalculatorSPLITMARKER</property>
+                <style>
+                    <class name="h2"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">3</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-4">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERTo do calculations with sage simply click on an input cell, enter your formula and press shift-enter to compute the corresponding output. You can also click on the "play" button in the headerbar. Just try it out:SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">4</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=7|
+3 + 5
+///
+8
+}}}
+MD{{{id=8|
+The caret symbol means “raise to a power”.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERThe caret symbol means “raise to a power”.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=9|
+57.1 ^ 100
+///
+4.60904368661396e175
+}}}
+MD{{{id=10|
+We compute the inverse of a 2×2 matrix in Sage.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERWe compute the inverse of a 2×2 matrix in Sage.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=11|
+matrix([[1,2], [3,4]])^(-1)
+///
+[  -2    1]
+[ 3/2 -1/2]
+}}}
+MD{{{id=12|
+Here we integrate a simple function.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERHere we integrate a simple function.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=13|
+x = var('x')   # create a symbolic variable
+integrate(sqrt(x)*sqrt(1+x), x)
+///
+1/4*((x + 1)^(3/2)/x^(3/2) + sqrt(x + 1)/sqrt(x))/((x + 1)^2/x^2 - 2*(x + 1)/x + 1) - 1/8*log(sqrt(x + 1)/sqrt(x) + 1) + 1/8*log(sqrt(x + 1)/sqrt(x) - 1)
+}}}
+MD{{{id=14|
+This asks Sage to solve a quadratic equation. The symbol == represents equality in Sage.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERThis asks Sage to solve a quadratic equation. The symbol == represents equality in Sage.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=15|
+a = var('a')
+S = solve(x^2 + x == a, x); S
+///
+[x == -1/2*sqrt(4*a + 1) - 1/2, x == 1/2*sqrt(4*a + 1) - 1/2]
+}}}
+MD{{{id=16|
+The result is a list of equalities.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERThe result is a list of equalities.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=17|
+S[0].rhs()
+///
+-1/2*sqrt(4*a + 1) - 1/2
+}}}
+MD{{{id=18|
+
+
+## Sessions and Variables
+
+## Creating Plots
+
+Naturally, Sage can plot various useful functions.
+
+TODO "many more options see chapter x of the MANUAL"
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERSessions and VariablesSPLITMARKER</property>
+                <style>
+                    <class name="h2"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-1">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERCreating PlotsSPLITMARKER</property>
+                <style>
+                    <class name="h2"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-2">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERNaturally, Sage can plot various useful functions.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">2</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-3">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERTODO "many more options see chapter x of the MANUAL"SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=19|
+show(plot(sin(x) + sin(1.6*x), 0, 40))
+///
+<image>result0.png</image>
+}}}
+MD{{{id=20|
+## Power Computing with Sage
+
+First we create a 500×500 matrix of random numbers.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERPower Computing with SageSPLITMARKER</property>
+                <style>
+                    <class name="h2"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER<child>
+            <object class="GtkLabel" id="label-1">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERFirst we create a 500×500 matrix of random numbers.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">1</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=21|
+m = random_matrix(RDF,500)
+///
+}}}
+MD{{{id=22|
+It takes Sage a few seconds to compute the eigenvalues of the matrix and plot them.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERIt takes Sage a few seconds to compute the eigenvalues of the matrix and plot them.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=23|
+e = m.eigenvalues()  #about 2 seconds
+w = [(i, abs(e[i])) for i in range(len(e))]
+show(points(w))
+///
+<image>result1.png</image>
+}}}
+MD{{{id=24|
+Thanks to the GNU Multiprecision Library (GMP), Sage can handle very large numbers, even numbers with millions or billions of digits.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERThanks to the GNU Multiprecision Library (GMP), Sage can handle very large numbers, even numbers with millions or billions of digits.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=25|
+factorial(100)
+///
+93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
+}}}
+{{{id=26|
+n = factorial(1000000)  #about 2.5 seconds
+///
+}}}
+MD{{{id=27|
+This computes at least 100 digits of π.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERThis computes at least 100 digits of π.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=28|
+N(pi, digits=100)
+///
+3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
+}}}
+MD{{{id=29|
+This asks Sage to factor a polynomial in two variables.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERThis asks Sage to factor a polynomial in two variables.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=30|
+R.<x,y> = QQ[]
+F = factor(x^99 + y^99)
+F
+///
+(x + y) * (x^2 - x*y + y^2) * (x^6 - x^3*y^3 + y^6) * (x^10 - x^9*y + x^8*y^2 - x^7*y^3 + x^6*y^4 - x^5*y^5 + x^4*y^6 - x^3*y^7 + x^2*y^8 - x*y^9 + y^10) * (x^20 + x^19*y - x^17*y^3 - x^16*y^4 + x^14*y^6 + x^13*y^7 - x^11*y^9 - x^10*y^10 - x^9*y^11 + x^7*y^13 + x^6*y^14 - x^4*y^16 - x^3*y^17 + x*y^19 + y^20) * (x^60 + x^57*y^3 - x^51*y^9 - x^48*y^12 + x^42*y^18 + x^39*y^21 - x^33*y^27 - x^30*y^30 - x^27*y^33 + x^21*y^39 + x^18*y^42 - x^12*y^48 - x^9*y^51 + x^3*y^57 + y^60)
+}}}
+{{{id=31|
+F.expand()
+///
+x^99 + y^99
+}}}
+MD{{{id=32|
+Sage takes just under 5 seconds to compute the numbers of ways to partition one hundred million as a sum of positive integers.
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="single_line_mode">False</property>
+                <property name="label" translatable="no">SPLITMARKERSage takes just under 5 seconds to compute the numbers of ways to partition one hundred million as a sum of positive integers.SPLITMARKER</property>
+                <style>
+                    <class name="p"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}
+{{{id=33|
+z = Partitions(10^8).cardinality() #about 4.5 seconds
+str(z)[:40]
+///
+'1760517045946249141360373894679135204009'
+}}}
+MD{{{id=34|
+## Further Reading
+///
+<interface>
+    <object class="GtkBox" id="buildablewrap">
+        <property name="orientation">vertical</property>
+        <property name="can_focus">False</property>
+        SPLITMARKER<child>
+            <object class="GtkLabel" id="label-0">
+                <property name="can_focus">False</property>
+                <property name="use_markup">True</property>
+                <property name="track_visited_links">False</property>
+                <property name="wrap">True</property>
+                <property name="wrap_mode">2</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="no">SPLITMARKERFurther ReadingSPLITMARKER</property>
+                <style>
+                    <class name="h2"/>
+                </style>
+            </object>
+            <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+            </packing>
+        </child>SPLITMARKER
+    </object>
+</interface>
+}}}

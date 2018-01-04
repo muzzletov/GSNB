@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# Copyright (C) 2017 Robert Griesel
+# Copyright (C) 2017, 2018 Robert Griesel
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -69,7 +69,7 @@ class WorksheetViewWrapper(Gtk.Notebook):
         return Gtk.SizeRequestMode.CONSTANT_SIZE
                      
     def do_get_preferred_width(self):
-        return 520, 520
+        return 763, 763
 
 
 class BlankStateView(Gtk.ScrolledWindow):
@@ -103,7 +103,7 @@ class BlankStateView(Gtk.ScrolledWindow):
         self.welcome_links.pack_start(self.import_ws_link, False, False, 0)
         
         self.footer = Gtk.Label()
-        #self.footer.set_text('Of Note: To get started using Sagemath consider our "Absolute Beginners\' Guide to Sagemath" (also in the sidebar).')
+        self.footer.set_text('Of Note: To get started using GSNB consider our "Absolute Beginners\' Guide" (in the sidebar).')
         self.footer.set_margin_bottom(20)
         self.footer.set_margin_left(25)
         self.footer.set_xalign(0)
@@ -667,12 +667,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_titlebar(self.headerbar)
 
         # window content
-        self.worksheet_list_view = WorksheetListView()
+        self.sidebar = Sidebar()
         self.worksheet_views = dict()
         self.worksheet_view_wrapper = WorksheetViewWrapper()
 
-        self.paned = Gtk.Paned()
-        self.paned.pack1(self.worksheet_list_view, False, False)
+        self.paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        self.paned.pack1(self.sidebar, False, False)
         self.paned.pack2(self.worksheet_view_wrapper, True, False)
         self.paned.set_position(250)
         self.paned_position = self.paned.get_position()
@@ -700,16 +700,16 @@ class MainWindow(Gtk.ApplicationWindow):
         self.style_context = Gtk.StyleContext()
         self.style_context.add_provider_for_screen(self.get_screen(), self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER)
 
-    def add_worksheet_view(self, worksheet_id, worksheet_view):
-        self.worksheet_views[worksheet_id] = worksheet_view
+    def add_worksheet_view(self, worksheet, worksheet_view):
+        self.worksheet_views[worksheet] = worksheet_view
         
-    def remove_worksheet_view(self, worksheet_id):
-        worksheet_view = self.worksheet_views[worksheet_id]
+    def remove_worksheet_view(self, worksheet):
+        worksheet_view = self.worksheet_views[worksheet]
         self.worksheet_view_wrapper.remove_view(worksheet_view)
-        del(self.worksheet_views[worksheet_id])
+        del(self.worksheet_views[worksheet])
 
-    def activate_worksheet_view(self, worksheet_id):
-        self.active_worksheet_view = self.worksheet_views[worksheet_id]
+    def activate_worksheet_view(self, worksheet):
+        self.active_worksheet_view = self.worksheet_views[worksheet]
         self.worksheet_view_wrapper.set_worksheet_view(self.active_worksheet_view)
         self.show_all()
     
